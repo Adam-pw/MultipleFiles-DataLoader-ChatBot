@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const appName = `azure cognitive services openai`;
+const appName = `Multiple Files uploaded`;
 
 export default function Home() {
   const [query, setQuery] = useState<string>("");

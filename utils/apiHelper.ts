@@ -1,6 +1,6 @@
-import { OpenAI } from 'langchain/llms/openai';
-import { PineconeStore } from 'langchain/vectorstores/pinecone';
-import { ConversationalRetrievalQAChain } from 'langchain/chains';
+import { OpenAI } from "langchain/llms/openai";
+import { PineconeStore } from "langchain/vectorstores/pinecone";
+import { ConversationalRetrievalQAChain } from "langchain/chains";
 
 const CONDENSE_PROMPT = `Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
 
@@ -9,9 +9,9 @@ Chat History:
 Follow Up Input: {question}
 Standalone question:`;
 
-const QA_PROMPT_COMMON = `You are virtual expert on azure cognitive services and azure open ai. Answer all the questions related to azure cognitive services and open ai.
+const QA_PROMPT_COMMON = `You are virtual expert on the provided files. Answer all the questions related to on the provided files.
 If the question is not related to the context, politely respond that you dont know.
-`
+`;
 
 const QA_PROMPT = `
 ${QA_PROMPT_COMMON}
@@ -33,7 +33,7 @@ export const askMeRealTimeData = (vectorstore: PineconeStore) => {
       qaTemplate: QA_PROMPT,
       questionGeneratorTemplate: CONDENSE_PROMPT,
       returnSourceDocuments: true, //The number of source documents returned is 4 by default
-    },
+    }
   );
   return chain;
 };

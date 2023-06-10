@@ -1,84 +1,47 @@
-# chatbot-sample
+# Loading Data from with Multiple Files
+This Readme demonstrates how to load data from a folder that contains multiple files using loaders. Each file in the folder is processed using a matching loader based on its file extension, and the resulting documents are concatenated together.
 
-Tech stack used includes LangChain, Pinecone, Typescript, Openai, and Next.js. 
-LangChain is a framework that makes it easier to build scalable AI/LLM apps and chatbots. 
-Pinecone is a vectorstore for storing embeddings and your PDF in text to later retrieve similar docs.
+## Folder Structure
+Here is an example folder structure that we will be working with:
 
-Prelude: Please make sure you have already downloaded node on your system and the version is 18 or greater.
-
-## Development
-
-1. Fork and Clone the repo
-
+```bash
+src/document_loaders/example_data/example/
+├── example.json
+├── example.jsonl
+├── example.txt
+└── example.csv
 ```
-git clone [github https url]
-```
+## Code Example
+The following code snippet demonstrates how to load data from the folder using loaders:
+
+```javascript
+import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
+import { JSONLoader, JSONLinesLoader } from "langchain/document_loaders/fs/json";
+import { TextLoader } from "langchain/document_loaders/fs/text";
+import { CSVLoader } from "langchain/document_loaders/fs/csv";
 
 
-2. Install packages
+const loader = new DirectoryLoader(
+  "Your files path",
+  {
+    ".json": (path) => new JSONLoader(path, "/texts"),
+    ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
+    ".txt": (path) => new TextLoader(path),
+    ".csv": (path) => new CSVLoader(path, "text"),
+  }
+);
 
-```
-npm i
-```
-After installation, you should now see a `node_modules` folder.
-
-3. Set up your `.env` file
-
-- Copy `.env.example` into `.env`
-  Your `.env` file should look like this:
-
-```
-OPENAI_API_KEY=
-
-PINECONE_API_KEY=
-PINECONE_ENVIRONMENT=
-
-PINECONE_INDEX_NAME=
-
-DATA_FILE_PATH=
+const docs = await loader.load();
+console.log({ docs });
 ```
 
-- Visit [openai](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key) to retrieve API keys and insert into your `.env` file.
-- Visit [pinecone](https://pinecone.io/) to create and retrieve your API keys, and also retrieve your environment and index name from the dashboard.
+In this code, we import the necessary loaders for different file types from the `langchain/document_loaders/fs` module. We then create a DirectoryLoader instance by providing the path to the folder `Your files path` and a map of file extensions to loader factories.
 
-4. In the `config` folder, replace the `PINECONE_NAME_SPACE` with a `namespace` where you'd like to store your embeddings on Pinecone when you run `npm run ingest`. This namespace will later be used for queries and retrieval.
+The loader factory functions define how each file should be loaded. In this example, we have defined loaders for four different file extensions: `.json`, `.jsonl`, `.txt`, and `.csv`. Each loader factory function takes the file path as a parameter and returns an instance of the corresponding loader.
 
-5. In `utils/makechain.ts` chain change the `QA_PROMPT` for your own usecase. Change `modelName` in `new OpenAI` to `gpt-4`, if you have access to `gpt-4` api. Please verify outside this repo that you have access to `gpt-4` api, otherwise the application will not work.
+Once the loader is set up, we call the load method to load the data from the folder. The load method returns a promise, so we use await to wait for the documents to be loaded. Finally, we log the loaded documents to the console.
 
-## File handling
+### Note: 
+The code provided assumes that the necessary dependencies and modules are properly installed and imported. Make sure to install the required packages and set up the file system loaders accordingly.
 
-**This repo currently supports only 1 file**
-
-1. Update the DATA_FILE_PATH in env file with your file location.
-
-2. Run the script `npm run ingest` to 'ingest' and embed your docs. If you run into errors troubleshoot below.
-
-3. Check Pinecone dashboard to verify your namespace and vectors have been added.
-
-## Run the app
-
-Once you've verified that the embeddings and content have been successfully added to your Pinecone, you can run the app `npm run dev` to launch the local dev environment, and then type a question in the chat interface.
-
-**General errors**
-
-- Make sure you're running the latest Node version. Run `node -v`
-- Try a different PDF or convert your PDF to text first. It's possible your PDF is corrupted, scanned, or requires OCR to convert to text.
-- `Console.log` the `env` variables and make sure they are exposed.
-- Make sure you're using the same versions of LangChain and Pinecone as this repo.
-- Check that you've created an `.env` file that contains your valid (and working) API keys, environment and index name.
-- If you change `modelName` in `OpenAI`, make sure you have access to the api for the appropriate model.
-- Make sure you have enough OpenAI credits and a valid card on your billings account.
-- Check that you don't have multiple OPENAPI keys in your global environment. If you do, the local `env` file from the project will be overwritten by systems `env` variable.
-- Try to hard code your API keys into the `process.env` variables if there are still issues.
-
-**Pinecone errors**
-
-- Make sure your pinecone dashboard `environment` and `index` matches the one in the `pinecone.ts` and `.env` files.
-- Check that you've set the vector dimensions to `1536`.
-- Make sure your pinecone namespace is in lowercase.
-- Pinecone indexes of users on the Starter(free) plan are deleted after 7 days of inactivity. To prevent this, send an API request to Pinecone to reset the counter before 7 days.
-- Retry from scratch with a new Pinecone project, index, and cloned repo.
-
-## Credit
-
-Developed by [brainlox.ai](https://brianlox.ai)
+Feel free to modify the code example and the folder structure according to your specific use case.
