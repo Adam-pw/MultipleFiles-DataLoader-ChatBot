@@ -13,7 +13,7 @@ import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/upload");
+    cb(null, "/public/upload");
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -30,7 +30,7 @@ export const config = {
 
 const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const uploadFolder = "public/upload";
+    const uploadFolder = "/public/upload";
     const files = fs.readdirSync(uploadFolder);
 
     // Delete all previous files
@@ -63,7 +63,7 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
       //   "https://github.com/Adam-pw/Share-A-Meal",
       //   { branch: "main", recursive: false, unknown: "warn" }
       // );
-      const directoryLoader = new DirectoryLoader("public/upload", {
+      const directoryLoader = new DirectoryLoader("/public/upload", {
         // ".json": (path) => new JSONLoader(path, "/texts"),
         // ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
         // ".txt": (path) => new TextLoader(path),
