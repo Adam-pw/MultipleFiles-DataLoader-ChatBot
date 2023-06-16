@@ -122,35 +122,16 @@ export default function Home() {
     }
   };
 
-  const [selectedFiles, setSelectedFiles] = useState<any>([]);
-
-  useEffect(() => {
-    const storedFiles = localStorage.getItem("myFiles");
-    if (storedFiles) {
-      setSelectedFiles(JSON.parse(storedFiles));
-    }
-  }, []);
-
-  const handleFileChange = (event: any) => {
-    const files = Array.from(event.target.files);
-    setSelectedFiles(files);
-    localStorage.setItem("myFiles", JSON.stringify(files));
-  };
-
-  const handleFileUpload = () => {
-    if (selectedFiles.length > 0) {
-      console.log("Locally stored files:", selectedFiles);
-    }
-  };
-
   const [files, setFiles] = useState<any>([]);
+  const handleFileUpload = () => {
+    if (files.length > 0) {
+      console.log("Locally stored files:", files);
+    }
+  };
 
   const handleFileChangeUpload = (event: any) => {
     const fileList = Array.from(event.target.files);
     setFiles(fileList);
-    const files = Array.from(event.target.files);
-    setSelectedFiles(files);
-    localStorage.setItem("myFiles", JSON.stringify(files));
   };
 
   const handleSubmitUpload = async (event: any) => {
@@ -199,9 +180,9 @@ export default function Home() {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 ></path>
               </svg>
@@ -225,11 +206,11 @@ export default function Home() {
             />
           </label>
           <div className="flex justify-center pt-8 pb-4">
-            {selectedFiles.length > 0 && (
+            {files.length > 0 && (
               <div className="flex gap-4 text-[#ff001b] font-medium">
                 <p>Locally stored files:</p>
                 <ul>
-                  {selectedFiles.map((file: any, index: any) => (
+                  {files.map((file: any, index: any) => (
                     <li key={index}>{file.name}</li>
                   ))}
                 </ul>
