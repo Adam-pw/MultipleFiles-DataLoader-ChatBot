@@ -122,8 +122,131 @@ export default function Home() {
     }
   };
 
+  const [selectedFiles, setSelectedFiles] = useState<any>([]);
+
+  useEffect(() => {
+    const storedFiles = localStorage.getItem("myFiles");
+    if (storedFiles) {
+      setSelectedFiles(JSON.parse(storedFiles));
+    }
+  }, []);
+
+  const handleFileChange = (event: any) => {
+    const files = Array.from(event.target.files);
+    setSelectedFiles(files);
+    localStorage.setItem("myFiles", JSON.stringify(files));
+  };
+
+  const handleFileUpload = () => {
+    if (selectedFiles.length > 0) {
+      console.log("Locally stored files:", selectedFiles);
+    }
+  };
+
+  const [files, setFiles] = useState<any>([]);
+
+  const handleFileChangeUpload = (event: any) => {
+    const fileList = Array.from(event.target.files);
+    setFiles(fileList);
+    const files = Array.from(event.target.files);
+    setSelectedFiles(files);
+    localStorage.setItem("myFiles", JSON.stringify(files));
+  };
+
+  const handleSubmitUpload = async (event: any) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+
+    files.forEach((file: any) => {
+      formData.append("files", file);
+    });
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        console.log("Files uploaded successfully");
+      } else {
+        console.error("Failed to upload files");
+      }
+    } catch (error) {
+      console.error("Error occurred while uploading files", error);
+    }
+  };
+
   return (
     <Layout>
+      <div className="flex items-center justify-center w-full">
+        <form
+          onSubmit={handleSubmitUpload}
+          className="w-[60vw] py-8 flex flex-col"
+        >
+          <label
+            htmlFor="dropzone-file"
+            className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+          >
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <svg
+                aria-hidden="true"
+                className="w-10 h-10 mb-3 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-semibold">Click to upload</span> or drag
+                and drop
+              </p>
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                The files you want to train the boat on
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                SVG, PNG, JPG or GIF (MAX. 800x400px)
+              </p>
+            </div>
+            <input
+              id="dropzone-file"
+              type="file"
+              className="hidden"
+              onChange={handleFileChangeUpload}
+              multiple
+            />
+          </label>
+          <div className="flex justify-center pt-8 pb-4">
+            {selectedFiles.length > 0 && (
+              <div className="flex gap-4 text-[#ff001b] font-medium">
+                <p>Locally stored files:</p>
+                <ul>
+                  {selectedFiles.map((file: any, index: any) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-center pt-8 pb-4">
+            <button
+              className="px-4 py-2 bg-[#310036] text-white rounded-lg"
+              onClick={handleFileUpload}
+              type="submit"
+            >
+              Train the boat
+            </button>
+          </div>
+        </form>
+      </div>
       <div className="mx-auto flex flex-col gap-4">
         <h1 className="text-2xl font-bold leading-[1.1] text-center tracking-wide">
           <span className="text-[#280036]">Chat With </span>
