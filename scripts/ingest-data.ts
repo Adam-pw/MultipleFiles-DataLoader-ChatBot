@@ -24,7 +24,7 @@ export const run = async () => {
     //   "https://github.com/Adam-pw/Share-A-Meal",
     //   { branch: "main", recursive: false, unknown: "warn" }
     // );
-    const directoryLoader = new DirectoryLoader("public/upload", {
+    const directoryLoader = new DirectoryLoader("/public/upload", {
       // ".json": (path) => new JSONLoader(path, "/texts"),
       // ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
       // ".txt": (path) => new TextLoader(path),
