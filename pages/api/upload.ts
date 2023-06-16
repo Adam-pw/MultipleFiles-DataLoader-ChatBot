@@ -98,12 +98,6 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
 
       await run();
       console.log("ingestion complete");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept"
-      );
       return res.status(200).json({ message: "Files uploaded successfully" });
     });
   } catch (error: any) {
