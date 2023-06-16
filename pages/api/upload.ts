@@ -1,7 +1,6 @@
 import multer from "multer";
 import fs from "fs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { exec } from "child_process";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
@@ -43,18 +42,6 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-
-      exec("npm run ingest && npm run build", (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error executing command: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          console.error(`Command stderr: ${stderr}`);
-          return;
-        }
-        console.log(`Command output: ${stdout}`);
-      });
 
       // Files are uploaded successfully
       return res.status(200).json({ message: "Files uploaded successfully" });
