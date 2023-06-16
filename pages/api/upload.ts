@@ -38,7 +38,7 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
       fs.unlinkSync(`${uploadFolder}/${file}`);
     }
 
-    await upload.array("files")(req as any, res as any, (err) => {
+    await upload.array("files")(req as any, res as any, async (err) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
@@ -92,14 +92,18 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
           });
         } catch (error) {
           console.log("error", error);
-          throw new Error("Failed to ingest your data");
+          throw error;
         }
       };
 
-      (async () => {
-        await run();
-        console.log("ingestion complete");
-      })();
+      await run();
+      console.log("ingestion complete");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept"
+      );
       return res.status(200).json({ message: "Files uploaded successfully" });
     });
   } catch (error: any) {

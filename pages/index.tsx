@@ -123,7 +123,9 @@ export default function Home() {
   };
 
   const [files, setFiles] = useState<any>([]);
+  const [loadinghe, setLoadinghe] = useState<any>();
   const handleFileUpload = () => {
+    setLoadinghe(true);
     if (files.length > 0) {
       console.log("Locally stored files:", files);
     }
@@ -151,16 +153,24 @@ export default function Home() {
 
       if (response.ok) {
         console.log("Files uploaded successfully");
+        setLoadinghe(false);
       } else {
         console.error("Failed to upload files");
+        setLoadinghe(false);
       }
     } catch (error) {
+      setLoadinghe(false);
       console.error("Error occurred while uploading files", error);
     }
   };
 
   return (
     <Layout>
+      {loadinghe && (
+        <>
+          <div className="">Loading</div>
+        </>
+      )}
       <div className="flex items-center justify-center w-full">
         <form
           onSubmit={handleSubmitUpload}
@@ -208,7 +218,7 @@ export default function Home() {
           <div className="flex justify-center pt-8 pb-4">
             {files.length > 0 && (
               <div className="flex gap-4 text-[#ff001b] font-medium">
-                <p>Locally stored files:</p>
+                <p>Selected files :</p>
                 <ul>
                   {files.map((file: any, index: any) => (
                     <li key={index}>{file.name}</li>
