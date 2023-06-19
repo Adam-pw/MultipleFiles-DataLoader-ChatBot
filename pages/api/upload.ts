@@ -24,7 +24,7 @@ const upload = multer({ storage });
 
 export const config = {
   api: {
-    bodyParser: false, // Disabling the built-in body parsing
+    bodyParser: false,
   },
 };
 
@@ -87,7 +87,7 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
           //embed the PDF documents
           await PineconeStore.fromDocuments(docs, embeddings, {
             pineconeIndex: index,
-            namespace: PINECONE_NAME_SPACE,
+            namespace: req.body.namespace,
             textKey: "text",
           });
         } catch (error) {
