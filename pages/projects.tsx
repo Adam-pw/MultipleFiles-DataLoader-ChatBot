@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { FaPlus, FaRobot } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { auth, db } from "@/firebase/config";
+import { auth, db } from "@/config/firebase";
 import {
   query,
   addDoc,
@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { v4 as uuidv4 } from "uuid";
-import { dynamodb } from "@/aws/config";
+import { dynamodb } from "@/config/AWS";
 
 const Projects = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +39,7 @@ const Projects = () => {
             id: uuidv4(),
             projectName: details.projectName,
             visibility: details.visibility,
-            nameSpace:  user?.uid + currentTimestamp,
+            nameSpace: user?.uid + currentTimestamp,
             userId: user?.uid,
           },
         };

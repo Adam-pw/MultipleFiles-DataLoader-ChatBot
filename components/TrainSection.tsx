@@ -1,5 +1,5 @@
-import { uploadFilesAWS } from "@/aws/config";
-import { auth, db } from "@/firebase/config";
+import { uploadFilesAWS } from "@/config/AWS";
+import { auth, db } from "@/config/firebase";
 import { query, collection, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";

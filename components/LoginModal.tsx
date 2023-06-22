@@ -2,7 +2,7 @@ import { Transition, Dialog } from "@headlessui/react";
 import React, { Fragment, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, provider } from "@/firebase/config";
+import { auth, provider } from "@/config/firebase";
 import router from "next/router";
 import { vendor } from "sharp";
 

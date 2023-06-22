@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { useState, Fragment } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { signInWithPopup, signOut } from "firebase/auth";
-import { auth, provider } from "@/firebase/config";
+import { auth, provider } from "@/config/firebase";
 import SignInModal from "./SignInModal";
 import LoginModal from "./LoginModal";
 import { useAuthState } from "react-firebase-hooks/auth";

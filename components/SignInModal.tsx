@@ -6,8 +6,8 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
-import { auth, provider } from "@/firebase/config";
-import router, { useRouter } from "next/router";
+import { auth, provider } from "@/config/firebase";
+import { useRouter } from "next/router";
 
 interface Props {
   isOpen: boolean;
