@@ -29,6 +29,7 @@ export const config = {
 };
 
 const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
+
   try {
     const uploadFolder = "public/upload";
     const files = fs.readdirSync(uploadFolder);

@@ -1,16 +1,15 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyADG9YGMSXPpHFh39kM25x9sjVz1QOHYg0",
-  authDomain: "multiple-file-chatbot.firebaseapp.com",
-  projectId: "multiple-file-chatbot",
-  storageBucket: "multiple-file-chatbot.appspot.com",
-  messagingSenderId: "592424706291",
-  appId: "1:592424706291:web:66fce3557775b5b817d786",
-  measurementId: "G-ZFL8BP52EP",
+  apiKey: process.env.FIREBAER_API_KEY,
+  authDomain: process.env.FIREBAER_AUTH_DOMAIN,
+  projectId: process.env.FIREBAER_PROJECT_ID,
+  storageBucket: process.env.FIREBAER_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBAER_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBAER_APP_ID,
+  measurementId: process.env.FIREBAER_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);

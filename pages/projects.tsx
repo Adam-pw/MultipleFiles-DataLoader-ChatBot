@@ -3,36 +3,76 @@ import React, { Fragment } from "react";
 import { FaPlus, FaRobot } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { db } from "@/firebase/config";
-import { query, addDoc, collection, onSnapshot } from "firebase/firestore";
+import { auth, db } from "@/firebase/config";
+import {
+  query,
+  addDoc,
+  collection,
+  onSnapshot,
+  where,
+} from "firebase/firestore";
 import Link from "next/link";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { v4 as uuidv4 } from "uuid";
+import { dynamodb } from "@/aws/config";
 
 const Projects = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, loading, error] = useAuthState(auth);
 
   const [details, setDetails] = useState({
     projectName: "",
-    nameSpace: "",
+    visibility: "",
   });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    // Store user data in Firestore
-    try {
-      addDoc(collection(db, "projects"), {
-        projectName: details.projectName,
-        nameSpace: details.nameSpace,
-      });
+    const currentTimestamp = new Date().getTime();
 
-      // Reset form
-      setDetails({
-        projectName: "",
-        nameSpace: "",
-      });
+    // Store user data in DynamoDB
+    try {
+      if (user) {
+        const params = {
+          TableName: "projects",
+          Item: {
+            id: uuidv4(),
+            projectName: details.projectName,
+            visibility: details.visibility,
+            nameSpace:  user?.uid + currentTimestamp,
+            userId: user?.uid,
+          },
+        };
+
+        await dynamodb.put(params).promise();
+
+        // Reset form
+        setDetails({
+          projectName: "",
+          visibility: "",
+        });
+      }
 
       // Handle success or navigate to a different page
       console.log("Data stored successfully!");
+
+      if (!loading) {
+        const params = {
+          TableName: "projects",
+          FilterExpression: "userId = :userId",
+          ExpressionAttributeValues: {
+            ":userId": user?.uid,
+          },
+        };
+
+        dynamodb.scan(params, (err: any, data: any) => {
+          if (err) {
+            console.error("Error retrieving data:", err);
+          } else {
+            setProject(data.Items);
+          }
+        });
+      }
     } catch (error) {
       console.error("Error storing data:", error);
     }
@@ -43,16 +83,24 @@ const Projects = () => {
   const [project, setProject] = useState<any>([]);
 
   useEffect(() => {
-    const q = query(collection(db, "projects"));
-    onSnapshot(q, (querySnapshot) => {
-      setProject(
-        querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }))
-      );
-    });
-  }, []);
+    if (!loading) {
+      const params = {
+        TableName: "projects",
+        FilterExpression: "userId = :userId",
+        ExpressionAttributeValues: {
+          ":userId": user?.uid,
+        },
+      };
+
+      dynamodb.scan(params, (err: any, data: any) => {
+        if (err) {
+          console.error("Error retrieving data:", err);
+        } else {
+          setProject(data.Items);
+        }
+      });
+    }
+  }, [user, loading]);
 
   return (
     <>
@@ -70,16 +118,13 @@ const Projects = () => {
           {project.map((value: any, index: any) => {
             return (
               <>
-                <Link href={`/projects/${value.data.projectName}`}>
-                  <div
-                    key={index}
-                    className="border-2 border-neutral-400 p-4 rounded-xl w-56 hover:border-black cursor-pointer hover:shadow-lg m-4"
-                  >
+                <Link href={`/projects/${value.projectName}`} key={index}>
+                  <div className="border-2 border-neutral-400 p-4 rounded-xl w-56 hover:border-black cursor-pointer hover:shadow-lg m-4">
                     <div className="text-lg font-semibold flex items-center gap-2">
-                      <FaRobot /> {value.data.projectName}
+                      <FaRobot /> {value.projectName}
                     </div>
                     <div className="text-md font-medium mt-4">
-                      {value.data.nameSpace}
+                      Visibility : {value.visibility}
                     </div>
                   </div>
                 </Link>
@@ -140,29 +185,26 @@ const Projects = () => {
                         Project Name
                       </label>
                     </div>
-                    <div className="relative mt-6 w-full">
-                      <input
-                        type="text"
-                        id="floating_outlined"
-                        className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-[#440034] focus:outline-none focus:ring-0 focus:border-[#440034] peer"
-                        placeholder=""
+                    <div className="relative mt-6 w-full flex items-center gap-6">
+                      <label className="font-medium">Visibility : </label>
+                      <select
                         onChange={(event) =>
                           setDetails((prev) => ({
                             ...prev,
-                            nameSpace: event.target.value,
+                            visibility: event.target.value,
                           }))
                         }
-                      />
-                      <label
-                        htmlFor="floating_outlined"
-                        className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#440034] peer-focus:dark:text-[#440034] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1"
+                        className="px-4 py-2 rounded-lg focus:border-[#440034] border-gray-300 peer-focus:dark:text-[#440034] focus:ring-[#440034] flex-1"
                       >
-                        Namespace name
-                      </label>
+                        <option value="Select">Select</option>
+                        <option value="Public">Public</option>
+                        <option value="Private">Private</option>
+                      </select>
                     </div>
                     <div className="mt-6 flex justify-end gap-4">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
                           setIsOpen(!isOpen);
                         }}
                         className="text-md font-semibold border-[1.5px] border-[#3a0035] text-[#3a0035] px-4 py-2 rounded-lg"
