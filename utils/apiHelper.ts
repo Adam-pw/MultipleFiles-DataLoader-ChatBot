@@ -9,9 +9,7 @@ Chat History:
 Follow Up Input: {question}
 Standalone question:`;
 
-const QA_PROMPT_COMMON = `You are virtual expert on the provided files. Answer all the questions related to on the provided files.
-If the question is not related to the context, politely respond that you dont know.
-`;
+const QA_PROMPT_COMMON = `You are virtual expert on the provided files or a website. Answer all the questions related to it. If the question is not related to the context, politely respond that you dont know.`;
 
 const QA_PROMPT = `
 ${QA_PROMPT_COMMON}

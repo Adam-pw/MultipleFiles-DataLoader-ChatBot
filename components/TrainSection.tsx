@@ -12,7 +12,8 @@ const TrainSection = (props: Props) => {
   const { setLoadinghe, appName } = props;
   const [files, setFiles] = useState<any>([]);
   const [useracc, loadingacc, erroracc] = useAuthState(auth);
-
+  const [link, setLink] = useState("");
+  const [links, setLinks] = useState<any>();
   const [project, setProject] = useState<any>([]);
 
   useEffect(() => {
@@ -43,11 +44,11 @@ const TrainSection = (props: Props) => {
 
     const formData: any = new FormData();
 
-    uploadFilesAWS(useracc?.uid, appName, files);
+    // uploadFilesAWS(useracc?.uid, appName, files);
 
-    files.forEach((file: any) => {
-      formData.append("files", file);
-    });
+    // files.forEach((file: any) => {
+    //   formData.append("files", file);
+    // });
 
     let nameSpace: any;
 
@@ -58,6 +59,7 @@ const TrainSection = (props: Props) => {
     });
 
     formData.append("nameSpace", nameSpace);
+    formData.append("links", JSON.stringify(links));
 
     try {
       const response = await fetch("/api/upload", {
@@ -78,10 +80,8 @@ const TrainSection = (props: Props) => {
     }
   };
 
-  const [link, setLink] = useState("");
-  const [links, setLinks] = useState<any>();
-
-  const handleLinkSubmit = () => {
+  const handleLinkSubmit = (e: any) => {
+    e.preventDefault();
     setLoadinghe(true);
     fetch(`/api/crawl?url=${encodeURIComponent(`${link}`)}`)
       .then((response) => response.json())
@@ -95,7 +95,10 @@ const TrainSection = (props: Props) => {
     <>
       <div className="flex items-center justify-center w-full">
         <form className="w-[60vw] py-8 flex flex-col">
-          <div className="px-2 text-lg font-semibold">URL Crawler :</div>
+          <div className="px-2 my-4 text-center font-semibold text-lg">
+            Train the bot using any URL, File or both
+          </div>
+          <div className="px-2 text-md font-semibold">URL Crawler :</div>
           <div className="flex relative gap-4 my-4 w-full items-center">
             <input
               type="text"
@@ -166,7 +169,7 @@ const TrainSection = (props: Props) => {
               type="file"
               className="hidden"
               onChange={(e) => {
-                handleFileChangeUpload(e), handleSubmitUpload(e);
+                handleFileChangeUpload(e);
               }}
               multiple
             />
@@ -186,7 +189,9 @@ const TrainSection = (props: Props) => {
           <div className="flex justify-center pb-4">
             <button
               className="px-4 py-2 bg-[#310036] text-white rounded-lg"
-              onClick={handleFileUpload}
+              onClick={(e) => {
+                handleFileUpload(), handleSubmitUpload(e);
+              }}
               type="submit"
             >
               Train the boat

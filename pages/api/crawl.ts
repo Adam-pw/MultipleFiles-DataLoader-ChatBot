@@ -21,7 +21,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   });
 
   // Send the crawled URLs in the response
-  res.json(links);
+  let response: any = [];
+  links.forEach((link) => {
+    if (link.length > 0 && link[0] == "h") {
+      response.push(link);
+    }
+  });
+  res.json(response);
 
   await browser.close();
 };
