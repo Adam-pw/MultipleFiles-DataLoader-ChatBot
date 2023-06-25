@@ -1,7 +1,7 @@
 {
   "/_app": "pages/_app.js",
-  "/_document": "pages/_document.js",
   "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
   "/api/askMeRealTimeData": "pages/api/askMeRealTimeData.js",
   "/api/crawl": "pages/api/crawl.js",
   "/": "pages/index.html",
