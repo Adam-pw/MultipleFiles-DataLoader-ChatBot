@@ -13,7 +13,7 @@ const TrainSection = (props: Props) => {
   const [files, setFiles] = useState<any>([]);
   const [useracc, loadingacc, erroracc] = useAuthState(auth);
   const [link, setLink] = useState("");
-  const [links, setLinks] = useState<any>();
+  const [links, setLinks] = useState<any>([]);
   const [project, setProject] = useState<any>([]);
 
   useEffect(() => {
@@ -44,11 +44,11 @@ const TrainSection = (props: Props) => {
 
     const formData: any = new FormData();
 
-    // uploadFilesAWS(useracc?.uid, appName, files);
+    uploadFilesAWS(useracc?.uid, appName, files);
 
-    // files.forEach((file: any) => {
-    //   formData.append("files", file);
-    // });
+    files.forEach((file: any) => {
+      formData.append("files", file);
+    });
 
     let nameSpace: any;
 
@@ -82,6 +82,11 @@ const TrainSection = (props: Props) => {
 
   const handleLinkSubmit = (e: any) => {
     e.preventDefault();
+    setLinks([...links, link]);
+  };
+
+  const handleLinkSubmitFetch = (e: any) => {
+    e.preventDefault();
     setLoadinghe(true);
     fetch(`/api/crawl?url=${encodeURIComponent(`${link}`)}`)
       .then((response) => response.json())
@@ -98,7 +103,32 @@ const TrainSection = (props: Props) => {
           <div className="px-2 my-4 text-center font-semibold text-lg">
             Train the bot using any URL, File or both
           </div>
-          <div className="px-2 text-md font-semibold">URL Crawler :</div>
+          <div className="px-2 text-md font-semibold">
+            Automatic fetch links :
+          </div>
+          <div className="flex relative gap-4 my-4 w-full items-center">
+            <input
+              type="text"
+              id="floating_outlined"
+              className="block px-2.5 flex-1 pb-2.5 pt-4 text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-[#440034] focus:outline-none focus:ring-0 focus:border-[#440034] peer"
+              placeholder=""
+              onChange={(event) => setLink(event.target.value)}
+            />
+            <label
+              htmlFor="floating_outlined"
+              className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-[#440034] peer-focus:dark:text-[#440034] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1"
+            >
+              Enter your URL
+            </label>
+            <button
+              className="text-md font-semibold text-white bg-[#3a0035] px-4 py-2 rounded-lg"
+              onClick={handleLinkSubmitFetch}
+            >
+              Fetch Links
+            </button>
+          </div>
+          <div className="text-center py-2 font-semibold">OR</div>
+          <div className="px-2 text-md font-semibold">Manually add links</div>
           <div className="flex relative gap-4 my-4 w-full items-center">
             <input
               type="text"
@@ -117,10 +147,10 @@ const TrainSection = (props: Props) => {
               className="text-md font-semibold text-white bg-[#3a0035] px-4 py-2 rounded-lg"
               onClick={handleLinkSubmit}
             >
-              Fetch Links
+              Add Link
             </button>
           </div>
-          {links && (
+          {links.length > 0 && (
             <>
               <div className="h-60 overflow-y-scroll my-8 shadow-lg border border-neutral-200 rounded-lg p-4">
                 {links?.map((link: any, index: any) => {

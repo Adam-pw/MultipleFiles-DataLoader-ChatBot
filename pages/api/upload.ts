@@ -15,7 +15,6 @@ import {
   JSONLinesLoader,
   TextLoader,
 } from "langchain/document_loaders";
-import puppeteer from "puppeteer";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -36,13 +35,13 @@ export const config = {
 
 const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    // const uploadFolder = "public/upload";
-    // const files = fs.readdirSync(uploadFolder);
+    const uploadFolder = "public/upload";
+    const files = fs.readdirSync(uploadFolder);
 
-    // // Delete all previous files
-    // for (const file of files) {
-    //   fs.unlinkSync(`${uploadFolder}/${file}`);
-    // }
+    // Delete all previous files
+    for (const file of files) {
+      fs.unlinkSync(`${uploadFolder}/${file}`);
+    }
 
     await upload.array("files")(req as any, res as any, async (err) => {
       if (err) {
@@ -53,12 +52,22 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
       const run = async () => {
         try {
           const directoryLoader = new DirectoryLoader("public/upload", {
-            ".json": (path) => new JSONLoader(path, "/texts"),
-            ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
-            ".txt": (path) => new TextLoader(path),
+            // ".json": (path) => new JSONLoader(path, "/texts"),
+            // ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
+            // ".txt": (path) => new TextLoader(path),
             ".pdf": (path: string) => new PDFLoader(path),
             ".csv": (path: string) => new CSVLoader(path),
           });
+          let allRawDocs: any = [];
+          const fileDocs = await directoryLoader.load();
+          const textSplitter = new RecursiveCharacterTextSplitter({
+            chunkSize: 1000,
+            chunkOverlap: 200,
+          });
+
+          const docs = await textSplitter.splitDocuments(fileDocs);
+          console.log("split docs", docs);
+          allRawDocs = [...allRawDocs, ...docs];
 
           const loadUrls = async (urls: any) => {
             for (const url of urls) {
@@ -69,33 +78,16 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
                 continue; // skip this URL and move on to the next one
               }
               const loader = new PuppeteerWebBaseLoader(url);
-              const rawDocs: any = await loader.load();
+              const rawDocs = await loader.load();
+              allRawDocs = [...allRawDocs, ...rawDocs];
 
-              const textSplitter = new RecursiveCharacterTextSplitter({
-                chunkSize: 1000,
-                chunkOverlap: 200,
-              });
-
-              const docs = await textSplitter.splitDocuments(rawDocs);
-              console.log("split docs", docs);
-
-              console.log("creating vector store...");
               /*create and store the embeddings in the vectorStore*/
-              const embeddings = new OpenAIEmbeddings();
-              const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
-
-              //embed the PDF documents
-              await PineconeStore.fromDocuments(docs, embeddings, {
-                pineconeIndex: index,
-                namespace: req.body.namespace,
-                textKey: "text",
-              });
 
               // Wait for 1 second before moving on to the next URL
             }
           };
 
-          loadUrls(JSON.parse(req.body.links));
+          await loadUrls(JSON.parse(req.body.links));
 
           // const loader = new PuppeteerWebBaseLoader(
           //   "https://www.tabnews.com.br/"
@@ -115,6 +107,16 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
           // const rawDocs = await directoryLoader.load();
 
           /* Split text into chunks */
+          const embeddings = new OpenAIEmbeddings();
+          console.log("creating vector store...");
+          const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
+
+          //embed the PDF documents
+          await PineconeStore.fromDocuments(allRawDocs, embeddings, {
+            pineconeIndex: index,
+            namespace: req.body.namespace,
+            textKey: "text",
+          });
         } catch (error) {
           console.log("error", error);
           throw error;
