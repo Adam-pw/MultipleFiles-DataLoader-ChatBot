@@ -1,12 +1,12 @@
 import AWS from "aws-sdk";
 
-AWS.config.update({
+export const AwsConfig = AWS.config.update({
   accessKeyId: process.env.NEXT_PUBLIC_AMAZON_ACCESS_KEY_ID,
   secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_SECRET_ACCESS_KEY,
   region: process.env.NEXT_PUBLIC_AMAZON_REGION,
 });
 
-const s3 = new AWS.S3();
+export const s3 = new AWS.S3();
 export const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 export const uploadFilesAWS = async (

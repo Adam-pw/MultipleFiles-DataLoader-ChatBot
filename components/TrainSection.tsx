@@ -1,6 +1,5 @@
-import { uploadFilesAWS } from "@/config/AWS";
+import { dynamodb, uploadFilesAWS } from "@/config/AWS";
 import { auth, db } from "@/config/firebase";
-import { query, collection, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 
@@ -17,16 +16,24 @@ const TrainSection = (props: Props) => {
   const [project, setProject] = useState<any>([]);
 
   useEffect(() => {
-    const q = query(collection(db, "projects"));
-    onSnapshot(q, (querySnapshot) => {
-      setProject(
-        querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }))
-      );
-    });
-  }, []);
+    if (!loadingacc) {
+      const params = {
+        TableName: "projects",
+        FilterExpression: "userId = :userId",
+        ExpressionAttributeValues: {
+          ":userId": useracc?.uid,
+        },
+      };
+
+      dynamodb.scan(params, (err: any, data: any) => {
+        if (err) {
+          console.error("Error retrieving data:", err);
+        } else {
+          setProject(data.Items);
+        }
+      });
+    }
+  }, [useracc, loadingacc]);
 
   const handleFileUpload = () => {
     setLoadinghe(true);
@@ -53,13 +60,16 @@ const TrainSection = (props: Props) => {
     let nameSpace: any;
 
     project.map((value: any) => {
-      if (value.data.projectName === appName) {
-        nameSpace = value.data.nameSpace;
+      if (value.projectName === appName) {
+        nameSpace = value.nameSpace;
       }
     });
 
     formData.append("nameSpace", nameSpace);
     formData.append("links", JSON.stringify(links));
+    if (useracc) {
+      formData.append("folder", `user_${useracc.uid}/${project.projectName}`);
+    }
 
     try {
       const response = await fetch("/api/upload", {
@@ -74,6 +84,11 @@ const TrainSection = (props: Props) => {
         console.error("Failed to upload files");
         setLoadinghe(false);
       }
+
+      const responseUp = await fetch("/api/uploadAws", {
+        method: "POST",
+        body: formData,
+      });
     } catch (error) {
       setLoadinghe(false);
       console.error("Error occurred while uploading files", error);

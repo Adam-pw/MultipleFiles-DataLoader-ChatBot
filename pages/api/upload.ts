@@ -38,7 +38,6 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
     const uploadFolder = "public/upload";
     const files = fs.readdirSync(uploadFolder);
 
-    // Delete all previous files
     for (const file of files) {
       fs.unlinkSync(`${uploadFolder}/${file}`);
     }
@@ -48,13 +47,12 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(500).json({ error: err.message });
       }
 
-      // Files are uploaded successfully
       const run = async () => {
         try {
           const directoryLoader = new DirectoryLoader("public/upload", {
-            // ".json": (path) => new JSONLoader(path, "/texts"),
-            // ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
-            // ".txt": (path) => new TextLoader(path),
+            ".json": (path) => new JSONLoader(path, "/texts"),
+            ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
+            ".txt": (path) => new TextLoader(path),
             ".pdf": (path: string) => new PDFLoader(path),
             ".csv": (path: string) => new CSVLoader(path),
           });
@@ -72,46 +70,23 @@ const uploadApi = async (req: NextApiRequest, res: NextApiResponse) => {
           const loadUrls = async (urls: any) => {
             for (const url of urls) {
               try {
-                new URL(url); // this will throw an error if the URL is invalid
+                new URL(url);
               } catch (error) {
                 console.error(`Invalid URL: ${url}`);
-                continue; // skip this URL and move on to the next one
+                continue;
               }
               const loader = new PuppeteerWebBaseLoader(url);
               const rawDocs = await loader.load();
               allRawDocs = [...allRawDocs, ...rawDocs];
-
-              /*create and store the embeddings in the vectorStore*/
-
-              // Wait for 1 second before moving on to the next URL
             }
           };
 
           await loadUrls(JSON.parse(req.body.links));
 
-          // const loader = new PuppeteerWebBaseLoader(
-          //   "https://www.tabnews.com.br/"
-          // );
-
-          // const rawDocs = await loader.load();
-
-          // const loader = new CheerioWebBaseLoader(
-          //   "https://www.tabnews.com.br/"
-          // );
-
-          // const rawDocs = await loader.load();
-
-          // const test = await directoryLoader.load();
-          // console.log({ test });
-
-          // const rawDocs = await directoryLoader.load();
-
-          /* Split text into chunks */
           const embeddings = new OpenAIEmbeddings();
           console.log("creating vector store...");
-          const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
+          const index = pinecone.Index(PINECONE_INDEX_NAME);
 
-          //embed the PDF documents
           await PineconeStore.fromDocuments(allRawDocs, embeddings, {
             pineconeIndex: index,
             namespace: req.body.namespace,
