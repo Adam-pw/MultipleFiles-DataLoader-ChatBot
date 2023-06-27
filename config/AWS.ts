@@ -8,6 +8,7 @@ export const AwsConfig = AWS.config.update({
 
 export const s3 = new AWS.S3();
 export const dynamodb = new AWS.DynamoDB.DocumentClient();
+export const dynamoDB = new AWS.DynamoDB();
 
 export const uploadFilesAWS = async (
   userId: any,

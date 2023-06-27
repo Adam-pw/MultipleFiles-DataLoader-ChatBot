@@ -4,12 +4,15 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@radix-ui/react-accordion";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import LoadingDots from "@/components/ui/LoadingDots";
 import { Message } from "@/types/chat";
 import styles from "@/styles/Home.module.css";
 import Image from "next/image";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/config/firebase";
+import { Timestamp } from "firebase/firestore";
 
 interface Props {
   appName: string;
@@ -20,6 +23,7 @@ const ChatSection = (props: Props) => {
   const [querylo, setQueryLo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [useracc, loadingacc, erroracc] = useAuthState(auth);
   const [messageState, setMessageState] = useState<{
     messages: Message[];
     pending?: string;
@@ -35,6 +39,11 @@ const ChatSection = (props: Props) => {
     history: [],
   });
   const { messages, history } = messageState;
+  const [hist, setHist] = useState({
+    userUid: useracc?.uid,
+    message: "",
+    respond: "",
+  });
 
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -67,6 +76,11 @@ const ChatSection = (props: Props) => {
       ],
     }));
 
+    setHist((prev) => ({
+      ...prev,
+      message: querylo,
+    }));
+
     setLoading(true);
     setQueryLo("");
 
@@ -83,6 +97,11 @@ const ChatSection = (props: Props) => {
       });
       const data = await response.json();
       console.log("data", data);
+
+      setHist((prev) => ({
+        ...prev,
+        respond: data.text,
+      }));
 
       if (data.error) {
         setError(data.error);
@@ -112,6 +131,28 @@ const ChatSection = (props: Props) => {
       console.log("error", error);
     }
   }
+
+  const saveChat = async () => {
+    const response = await fetch("/api/chatHistory", {
+      method: "POST",
+      body: JSON.stringify({
+        chatid: (hist.userUid ?? "") + "_" + appName,
+        userMessage: hist.message,
+        response: hist.respond,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+  };
+
+  useEffect(() => {
+    if (hist.message !== "" && hist.respond !== "") {
+      saveChat();
+    }
+  }, [hist.message, hist.respond]);
 
   //prevent empty submissions
   const handleEnter = (e: any) => {
@@ -210,7 +251,12 @@ const ChatSection = (props: Props) => {
           </div>
           <div className={styles.center}>
             <div className={styles.cloudform}>
-              <form onSubmit={handleSubmit} className="flex">
+              <form
+                onSubmit={(e) => {
+                  handleSubmit(e);
+                }}
+                className="flex"
+              >
                 <textarea
                   disabled={loading}
                   onKeyDown={handleEnter}
